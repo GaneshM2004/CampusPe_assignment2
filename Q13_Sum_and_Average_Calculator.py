@@ -2,8 +2,8 @@ count = int(input("Enter count of numbers: "))
 numbers = []
 #taking the numbers as input and storing in a list
 for i in range(1, count + 1):
-    input= float(input(f"Enter number {i}: "))
-    numbers.append(input)
+    num = float(input(f"Enter number {i}: "))
+    numbers.append(num)
 
 #calculating sum, average, max and min using built in functions and displaying output
 if count > 0:
