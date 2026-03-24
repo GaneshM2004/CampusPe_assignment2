@@ -29,6 +29,12 @@ To keep your credentials secure, set the following environment variables on your
 By using .env file where these environment variables are declared
 So that .env file doesnt get pushed to github, We use gitignore.
 
+## Models Used
+* Cohere : command-a-03-2025
+* Gemini : gemini-2.5-flash
+* Groq : llama-3.1-8b-instant
+* HuggingFace : meta-llama/Llama-3.1-8B-Instruct:cerebras
+* Ollama : llama2
 
 ## How to Run
 Execute each program via the terminal. For example:
