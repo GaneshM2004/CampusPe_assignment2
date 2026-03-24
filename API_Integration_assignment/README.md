@@ -25,6 +25,7 @@ To keep your credentials secure, set the following environment variables on your
 * `HUGGINGFACE_API_KEY`
 * `GOOGLE_API_KEY`
 * `COHERE_API_KEY`
+
 By using .env file where these environment variables are declared
 So that .env file doesnt get pushed to github, We use gitignore.
 
@@ -32,4 +33,5 @@ So that .env file doesnt get pushed to github, We use gitignore.
 ## How to Run
 Execute each program via the terminal. For example:
 `python GeminiAPI.py`
+
 You will be prompted to enter a string, and the output of the console will output the API response.
