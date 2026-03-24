@@ -1,8 +1,9 @@
 import requests
 import json
 
+#function to query Ollama API with a prompt and get response
 def query_api(prompt):
-    url = "http://localhost:11434/api/generate"
+    url = "http://localhost:11434/api/generate" #localhost URL for Ollama API
     payload = {
         "model": "llama2",
         "prompt": prompt,
@@ -15,6 +16,7 @@ def query_api(prompt):
     except Exception as e:
         return f"Error: {str(e)}"
 
+#main function to take user input and query the API
 if __name__ == "__main__":
     user_prompt = input("Enter your prompt: ")
     print("Querying API...")
