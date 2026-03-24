@@ -7,6 +7,7 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # initialize the Gemini model
+#using this model for gemini api and it is free tier model
 model = genai.GenerativeModel('gemini-2.5-flash')
 
 #function to query Gemini API with a prompt and get response

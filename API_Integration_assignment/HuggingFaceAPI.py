@@ -14,6 +14,7 @@ headers = {
 #function to query HuggingFace API with a prompt and get response
 def query_api(user_prompt):
     payload = {
+        #using this model for huggingface api
         "model": "meta-llama/Llama-3.1-8B-Instruct:cerebras",
         "messages": [
             {"role": "user", "content": user_prompt}

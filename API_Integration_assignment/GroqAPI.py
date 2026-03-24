@@ -11,6 +11,7 @@ def query_api(prompt):
     try:
         response = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
+            #using this model for groq api
             model="llama-3.1-8b-instant",
             max_tokens=500,
             temperature=0.7

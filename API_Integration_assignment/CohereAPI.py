@@ -11,6 +11,7 @@ def query_api(prompt):
     try:
         response = client.chat(
             message=prompt,
+            #using this model for cohere api and it is the latest one as of now
             model="command-a-03-2025" 
         )
         return response.text

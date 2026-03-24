@@ -5,6 +5,7 @@ import json
 def query_api(prompt):
     url = "http://localhost:11434/api/generate" #localhost URL for Ollama API
     payload = {
+        #using this model for ollama api which was downloaded and added to ollama
         "model": "llama2",
         "prompt": prompt,
         "stream": False
