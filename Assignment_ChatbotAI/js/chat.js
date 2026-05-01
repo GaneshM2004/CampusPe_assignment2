@@ -100,54 +100,11 @@ $(document).ready(function () {
             </div>
         `);
     });
-    // --- Mock AI Responses ---
-    const aiResponses = [
-        "That's a great question! I can certainly help you with that.",
-        "Here is a code snippet that might solve your problem.",
-        "I'm a mock AI for the CampusPe assignment, but I'm doing my best!",
-        "Could you provide a bit more context so I can give a more accurate answer?",
-        "As an AI language model, I don't have real feelings, but this chat UI looks fantastic!",
-        "Let me think about that for a second... Okay, I have an answer for you."
-    ];
+    // --- Backend API Configuration ---
+    const API_URL = 'http://localhost:5000/api/chat';
 
-    // --- Smart Keyword-Based Responses ---
-    const smartResponses = [
-        {
-            keywords: ["who are you", "who r u", "what are you", "introduce yourself", "your name", "ur name"],
-            response: "Hi there! 👋 I'm CampusPe AI, your intelligent campus assistant! I'm here to help you with coding questions, study tips, campus life queries, and much more. Think of me as your always-available academic buddy. How can I assist you today?"
-        },
-        {
-            keywords: ["hi", "hello", "hey", "hlo", "hii", "howdy", "sup", "what's up", "whats up"],
-            response: "Hello! 😊 Great to see you here. I'm CampusPe AI, ready to help. What's on your mind today?"
-        },
-        {
-            keywords: ["how are you", "how r u", "how are u", "you doing", "ur doing"],
-            response: "I'm doing great, thanks for asking! 🤖✨ As an AI, I don't have feelings, but I'm fully charged and ready to help you with anything you need. What can I do for you?"
-        },
-        {
-            keywords: ["bye", "goodbye", "see you", "cya", "later", "good night", "goodnight"],
-            response: "Goodbye! 👋 It was great chatting with you. Come back anytime you need help. Take care!"
-        },
-        {
-            keywords: ["thank", "thanks", "thx", "ty", "appreciate"],
-            response: "You're welcome! 😊 Happy to help. Feel free to ask me anything else anytime!"
-        },
-        {
-            keywords: ["what can you do", "your features", "help me", "capabilities", "what do you do"],
-            response: "I can help you with a lot of things! 🚀\n• Answer coding questions\n• Explain concepts clearly\n• Help with assignments\n• Give study tips\n• Chat about campus life\n\nJust ask away — I'm here for you!"
-        }
-    ];
-
-    // --- Get AI Response (smart first, then random fallback) ---
-    function getAIResponse(userMessage) {
-        const lowerMsg = userMessage.toLowerCase().trim();
-        for (const item of smartResponses) {
-            if (item.keywords.some(keyword => lowerMsg.includes(keyword))) {
-                return item.response;
-            }
-        }
-        return aiResponses[Math.floor(Math.random() * aiResponses.length)];
-    }
+    // --- Conversation History ---
+    let messages = [];
 
     // --- Part 3.2: Input Handling ---
 
@@ -190,7 +147,7 @@ $(document).ready(function () {
 
     // --- Part 3.1 & 3.3: Core Logic ---
 
-    function sendMessage() {
+    async function sendMessage() {
         const messageText = $chatInput.val().trim();
         if (!messageText) return;
 
@@ -201,7 +158,10 @@ $(document).ready(function () {
             });
         }
 
-        // Add User Message
+        // Add user message to conversation history
+        messages.push({ role: 'user', content: messageText });
+
+        // Add User Message to UI
         addMessage(messageText, 'user');
 
         // Clear input and reset height
@@ -209,17 +169,32 @@ $(document).ready(function () {
         $chatInput.css('height', 'auto');
         $sendBtn.prop('disabled', true);
 
-        // Simulate AI Processing
+        // Show typing indicator while waiting for backend
         showTypingIndicator();
 
-        // Random delay between 1 to 2 seconds
-        const delay = Math.floor(Math.random() * 1000) + 1000;
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: messages }),
+            });
 
-        setTimeout(function () {
+            const data = await response.json();
             removeTypingIndicator();
-            const smartReply = getAIResponse(messageText);
-            addMessage(smartReply, 'assistant');
-        }, delay);
+
+            if (!response.ok || data.error) {
+                addMessage('⚠️ ' + (data.error || 'Something went wrong. Please try again.'), 'assistant');
+                return;
+            }
+
+            // Add assistant reply to conversation history
+            messages.push({ role: 'assistant', content: data.reply });
+
+            addMessage(data.reply, 'assistant');
+        } catch (err) {
+            removeTypingIndicator();
+            addMessage('⚠️ Could not reach the server. Make sure the Flask backend is running on http://localhost:5000.', 'assistant');
+        }
     }
 
     function addMessage(text, sender) {
@@ -239,6 +214,28 @@ $(document).ready(function () {
                 </div>
             `;
         } else {
+            // Custom Markdown renderer for code blocks (Marked v12+ API)
+            const renderer = {
+                code(token) {
+                    const codeContent = typeof token === 'string' ? token : token.text;
+                    const lang = typeof token === 'string' ? arguments[1] : token.lang;
+                    const langMatch = (lang || 'plaintext').toLowerCase();
+
+                    return `
+                        <div class="code-block-wrapper">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">${langMatch}</span>
+                                <button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.innerText)">Copy</button>
+                            </div>
+                            <pre><code class="language-${langMatch}">${codeContent}</code></pre>
+                        </div>
+                    `;
+                }
+            };
+            marked.use({ renderer });
+
+            // Parse Markdown for assistant responses
+            const rendered = marked.parse(text);
             messageHTML = `
                 <div class="message assistant">
                     <div class="avatar"><i class="fas fa-robot"></i></div>
@@ -246,7 +243,7 @@ $(document).ready(function () {
                         <div class="message-header">
                             CampusPe AI &bull; ${timeString}
                         </div>
-                        <div class="message-bubble">${escapeHTML(text).replace(/\n/g, '<br>')}</div>
+                        <div class="message-bubble markdown-body"><div class="ai-markdown-content">${rendered}</div></div>
                     </div>
                 </div>
             `;
