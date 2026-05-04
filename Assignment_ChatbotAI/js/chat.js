@@ -285,4 +285,44 @@ $(document).ready(function () {
         return $('<div>').text(str).html();
     }
 
+    // --- Voice-to-Text (Web Speech API) ---
+    const micBtn = document.getElementById('mic-btn');
+
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = function () {
+            micBtn.classList.add('listening');
+        };
+
+        recognition.onresult = function (event) {
+            const transcript = event.results[0][0].transcript;
+            // Append transcript to the textarea
+            const input = document.getElementById('chat-input');
+            input.value += transcript;
+            // Fire 'input' event so the send-button enable logic triggers
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+
+        recognition.onerror = function (event) {
+            console.error('Speech recognition error:', event.error);
+            micBtn.classList.remove('listening');
+        };
+
+        recognition.onend = function () {
+            micBtn.classList.remove('listening');
+        };
+
+        micBtn.addEventListener('click', () => {
+            micBtn.classList.contains('listening') ? recognition.stop() : recognition.start();
+        });
+    } else {
+        micBtn.style.display = 'none';
+        console.warn('Web Speech API is not supported in this browser.');
+    }
+
 });
